@@ -16,9 +16,9 @@ SIZE = 512
 TRAIN_SIZE = 0.75
 VAL_SIZE = 0.15
 
-images = np.load("saved_arrays/" + CATEGORY + "_images.npy")
-masks = np.load("saved_arrays/" + CATEGORY + "_masks.npy")
-filenames = np.load("saved_arrays/" + CATEGORY + "_filenames.npy")
+images = np.load("saved_arrays/datasets/" + CATEGORY + "_images.npy")
+masks = np.load("saved_arrays/datasets/" + CATEGORY + "_masks.npy")
+filenames = np.load("saved_arrays/datasets/" + CATEGORY + "_filenames.npy")
 
 print(filenames)
 
