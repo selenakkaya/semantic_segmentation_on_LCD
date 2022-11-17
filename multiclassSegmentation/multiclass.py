@@ -1,83 +1,121 @@
-import random
+import json
 import numpy as np
-#from keras.utils import normalize
-import os
-import glob
 import cv2
-from matplotlib import pyplot as plt
+from multiclass_mask_utils import  mask_one_hot
+import os
 
-random.seed(1)
-
-CATEGORY = "multiclass" #mesh and wire
-SIZE = 512
-N_CLASSES=3 #Number of classes for segmentation
-N_IMAGES = 200  #more than that available
+SAVE_MASKS = True # if you want to save mask images for a visual check
 
 
-images = "multiclass_saved_arrays/multiclass_datasets/_train_images.npy"
-masks = "multiclass_saved_arrays/multiclass_datasets/_train_masks.npy"
-#filename_images = np.load("multiclass_saved_arrays/_multiclass_filenames.npy") 
 
-'''
-
-print("Image data shape is: ", images.shape)
-print("Mask data shape is: ", masks.shape)
-print("Max pixel value in image is: ", images.max())
-print("Labels in the mask are : ", np.unique(masks))
-
-'''
-
-COLORMAP = [
-        [0, 0, 0], [37, 150, 190], [254,228,186]
-    ]
-
-CLASSES = [
-    'background', 'mesh', 'wire'
-    ]
-
-for name, color in zip(CLASSES, COLORMAP):
-    print(f"{name} - {color}")
-
-    # background - [0, 0, 0]
-    # mesh - [37, 150, 190]
-    # wire - [254, 228, 186]
+src_path = "mesh_and_wire/masks/"
 
 
-def process_mask(rgb_mask, colormap):
-    output_mask = []
 
-    for i, color in enumerate(colormap):
-        cmap = np.all(np.equal(rgb_mask, color), axis=-1)
-        output_mask.append(cmap)
+dst_dir_arr = "selo/arr/"
+if not os.path.exists(dst_dir_arr):
+    os.mkdir(dst_dir_arr)
 
-    output_mask = np.stack(output_mask, axis=-1)
-    return output_mask
+
+
+if SAVE_MASKS:
+    dst_dir_masks = "selo/masks/"
+    if not os.path.exists(dst_dir_masks):
+        os.makedirs(dst_dir_masks)
+
+
+
+
+masks = np.load('multiclass_saved_arrays/_multiclass_masks.npy')
+mask_one_hot(masks)
+OHE_masks = mask_one_hot(masks)
+
+print("masks", masks.shape)
+print("OHE_masks", OHE_masks.shape)
+
+#np.save(dst_dir_arr + "selo_multiclass_masks.npy", OHE_masks)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#multiclass mask utils
+
+from PIL import Image, ImageDraw
+import numpy as np
+import cv2
+import tensorflow as tf
+
+
+def create_masks_in_one_image(polygons_mesh, polygones_wire, img_h, img_w):
+    """
+    create mask with more polygons on one image
+    :param polygons: list of polygons [x1, y1, x2, y2, ..., xn, yn]
+    :param img_h: image height
+    :param img_w: image width
+    :return: image mask (h,w) with values {0,1} (1 where there is the object)
+    """
     
-#Processing the mask to one-hot mask
-for x in masks:
-    """ Reading the image and mask """
-    mask = cv2.imread(x, cv2.IMREAD_COLOR)
+    black_img = Image.new('RGB', (img_w, img_h), (0, 0, 0))
+    for p_m in polygons_mesh:
+        print(p_m)
+        ImageDraw.Draw(black_img).polygon(p_m, outline=(0, 255, 0), fill=(0, 255, 0))
+    for p_w in polygones_wire:  
+        ImageDraw.Draw(black_img).polygon(p_w, outline=(255, 0 ,0), fill=(255,0,0))
+    mask = np.array(black_img)
+    return mask
 
-    print(mask)
+def mask_one_hot(masks):
+    labels_old = [[0, 0, 0], [0, 255, 0], [255, 0, 0]]
+    labels_new = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    dst_dir_arr = "selo/arr/"
+    dst_dir_masks = "selo/masks/"
+    for mask in masks:
+        for i, label in enumerate(labels_old):
+            mask[np.all(mask == label, axis = -1)] = labels_new[i]
+        np.save(dst_dir_arr + "selo_multiclass_masks.npy", mask)
+        cv2.imwrite(dst_dir_masks + '_selo_by.jpg', mask)
 
-    """ Processing the mask to one-hot mask """
-    processed_mask = process_mask(mask, COLORMAP)
-    """ Converting one-hot mask to single channel mask """
-    grayscale_mask = np.argmax(processed_mask, axis=-1)
-    grayscale_mask = (grayscale_mask / len(CLASSES)) * 255
-    grayscale_mask = np.expand_dims(grayscale_mask, axis=-1)
+    return mask
 
-    for y in images : 
 
-        image = cv2.imread(y, cv2.IMREAD_COLOR)
+def create_mask(polygon, img_h, img_w):
+    """
+    From list with points of the polygon return the image with mask image.
+    The dimension of the mask is the same of the relative image
+    :param polygon: [x1, y1, x2, y2, ..., xn, yn]
+    :param img_h: image height
+    :param img_w: image width
+    :return: image mask (h,w) with values {0,1}
+    """
+    black_img = Image.new('L', (img_w, img_h), 0)
+    img = ImageDraw.Draw(black_img).polygon(polygon, outline=1, fill=1)
+    img = ImageDraw.Draw(img).polygon(polygon, outline=2, fill=2)
+    mask = np.array(img)
+    return mask
 
-        """ Saving the image """
-        line = np.ones((320, 5, 3)) * 255
-        cat_images = np.concatenate([
-        image, line, mask, line,
-        np.concatenate([grayscale_mask, grayscale_mask, grayscale_mask], axis=-1)
-        ], axis=1)
 
-        cv2.imwrite(f"mask/{name}.png", cat_images)
+def get_xy_segmentation(segment):
+    """
+    Transform polygon into [x1, y1, x2, y2, ..., xn, yn] format
+    :param segment: segmentation in labelme format
+    :return: polygon [x1, y1, x2, y2, ..., xn, yn]
+    """
+    polygon = []
+    for p in segment:
+        polygon.append(p[0])
+        polygon.append(p[1])
 
+    return polygon
 
