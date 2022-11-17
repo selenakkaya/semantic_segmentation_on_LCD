@@ -1,7 +1,8 @@
+
 from PIL import Image, ImageDraw
 import numpy as np
 import cv2
-
+import tensorflow as tf
 
 
 def create_masks_in_one_image(polygons_mesh, polygones_wire, img_h, img_w):
@@ -16,10 +17,30 @@ def create_masks_in_one_image(polygons_mesh, polygones_wire, img_h, img_w):
     black_img = Image.new('RGB', (img_w, img_h), (0, 0, 0))
     for p_m in polygons_mesh:
         print(p_m)
-        ImageDraw.Draw(black_img).polygon(p_m, outline=(37, 150, 190), fill=(37, 150, 190))
-    for p_w in polygones_wire:
-        ImageDraw.Draw(black_img).polygon(p_w, outline=(254,228,186), fill=(254,228,186))
+        ImageDraw.Draw(black_img).polygon(p_m, outline=(0, 255, 0), fill=(0, 255, 0))
+    for p_w in polygones_wire:  
+        ImageDraw.Draw(black_img).polygon(p_w, outline=(255, 0 ,0), fill=(255,0,0))
     mask = np.array(black_img)
+    return mask
+
+#------------------------------------------------------------------------------------------#
+#----------------------------------One Hot Encoding----------------------------------------#
+#------------------------------------------------------------------------------------------#
+
+
+filenames = np.load('multiclass_saved_arrays\_multiclass_filenames.npy')
+def mask_one_hot(masks):
+    labels_old = [[0, 0, 0], [0, 255, 0], [255, 0, 0]]
+    labels_new = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    dst_dir_arr = "selo/arr/"
+    dst_dir_masks = "selo/masks/"
+    for mask in masks:
+        for i, label in enumerate(labels_old):
+            mask[np.all(mask == label, axis = -1)] = labels_new[i]
+        np.save(dst_dir_arr + "selo_multiclass_masks.npy", mask)
+        for fn in filenames:
+            cv2.imwrite(dst_dir_masks + fn +'_selo_by.jpg', mask)
+
     return mask
 
 
