@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import cv2
-from three_mask_utils import get_xy_segmentation, create_masks_in_one_image
+from multiclass_mask_utils import get_xy_segmentation, create_masks_in_one_image
 import os
 
 IMG_RES_W = 512  # output image width Potenza di 2
@@ -28,7 +28,7 @@ def draw_image_and_mask(img_res_h, img_res_w, img_res, mask_res):
     double_img[:, img_res_w:, :] = mask_res
     return double_img
 
-dst_dir_arr = "three_saved_arrays"
+dst_dir_arr = "multiclass_saved_arrays"
 if not os.path.exists(dst_dir_arr):
     os.mkdir(dst_dir_arr)
 
