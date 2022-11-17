@@ -7,7 +7,7 @@ import os
 IMG_RES_W = 512  # output image width Potenza di 2
 IMG_RES_H = 512  # output image height
 
-SAVE_IMAGES = False # if you want to save mask images for a visual check
+SAVE_IMAGES = True # if you want to save mask images for a visual check
 SAVE_MASKS = False
 
 CATEGORY_M = "mesh"
@@ -29,8 +29,8 @@ if SAVE_IMAGES:
 
 if SAVE_MASKS:
     dst_dir_masks = "mesh_and_wire/masks"
-    if not os.path.exists(dst_dir_imgs):
-        os.makedirs(dst_dir_imgs)
+    if not os.path.exists(dst_dir_masks):
+        os.makedirs(dst_dir_masks)
 
 
 
@@ -83,6 +83,7 @@ for site in os.listdir(src_path):
                 filenames.append(filename + '_cx')
                 if SAVE_IMAGES:
                     cv2.imwrite(dst_dir_imgs + '/' + filename + '_cx.jpg', img_res_cx)
+                if SAVE_MASKS:
                     cv2.imwrite(dst_dir_masks + '/' + filename + '_mask_cx.jpg', mask_res_cx)
 
 
@@ -97,6 +98,7 @@ for site in os.listdir(src_path):
                 filenames.append(filename + '_sx')
                 if SAVE_IMAGES:
                     cv2.imwrite(dst_dir_imgs + '/' + filename + '_sx.jpg', img_res_sx)
+                if SAVE_MASKS:
                     cv2.imwrite(dst_dir_masks + '/' + filename + '_mask_sx.jpg', mask_res_sx)
 
 
@@ -111,6 +113,7 @@ for site in os.listdir(src_path):
                 filenames.append(filename + '_dx')
                 if SAVE_IMAGES:
                     cv2.imwrite(dst_dir_imgs + '/' + filename + '_dx.jpg', img_res_dx)
+                if SAVE_MASKS:
                     cv2.imwrite(dst_dir_masks + '/' + filename + '_mask_dx.jpg', mask_res_dx)
 
         # vertical images
@@ -125,6 +128,7 @@ for site in os.listdir(src_path):
                 filenames.append(filename + '_cy')
                 if SAVE_IMAGES:
                     cv2.imwrite(dst_dir_imgs + '/' + filename + '_cy.jpg', img_res_cy)
+                if SAVE_MASKS:
                     cv2.imwrite(dst_dir_masks + '/' + filename + '_mask_cy.jpg', mask_res_cy)
 
             cut_mask_by = mask[(img_h - img_w):, :]
@@ -137,6 +141,7 @@ for site in os.listdir(src_path):
                 filenames.append(filename + '_by')
                 if SAVE_IMAGES:
                     cv2.imwrite(dst_dir_imgs + '/' + filename + '_by.jpg', img_res_by)
+                if SAVE_MASKS:
                     cv2.imwrite(dst_dir_masks + '/' + filename + '_mask_by.jpg', mask_res_by)
 
 
