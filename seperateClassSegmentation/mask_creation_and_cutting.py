@@ -19,7 +19,7 @@ IMG_RES_W = 512  # output image width Potenza di 2
 IMG_RES_H = 512  # output image height
 SAVE_IMAGES = False # if you want to save mask images for a visual check
 CATEGORY = "mesh" #mesh or wire
-src_path = "sources"
+src_path = "../../sources"
 
 
 def draw_image_and_mask(img_res_h, img_res_w, img_res, mask_res):
@@ -54,14 +54,12 @@ if SAVE_IMAGES:
 images = []
 masks = []
 filenames = []
-
 for site in os.listdir(src_path):
-    name_list = [x.split(".")[0] for x in os.listdir(os.path.join(src_path, site, "images"))]
+    name_list = [x.split(".")[0] for x in os.listdir(os.path.join(src_path, site, "labels"))]
     print(name_list)
     for filename in name_list:
         ann_path = src_path + '/' + site + "/labels/" + filename + ".json"
         img = cv2.imread(src_path + '/' + site + "/images/" + filename + ".jpg")
-        
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) #opencv open images in BGR
         img_w = img.shape[1]
         img_h = img.shape[0]
