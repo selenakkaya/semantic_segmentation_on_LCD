@@ -6,22 +6,22 @@ import numpy as np
 
 
 
-# intersection over : percent overlap between the target mask and our prediction
+# correct_pred over : percent overlap between the target mask and our prediction
 def mean_iou_test(y_true, y_pred, num_classes):
-    intersection = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
+    correct_pred = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
     den = np.zeros(num_classes) # den = M + W + B = (M or W or B) + (M and W and B) + ..
 
-    for i in range (len(y_true)):
-        for j in range(512):
-            for k in range(512):
-                if y_pred[i][j][k]==y_true[i][j][k]:
-                    intersection[y_true[i][j][k]]+=1
-                den[y_pred[i][j][k]] += 1
-                den[y_true[i][j][k]] += 1
+    for i in range (y_true.shape[0]):
+        for j in range(y_true.shape[1]):
+            for k in range(y_true.shape[2]):
+                if (y_pred[i][j][k])==(y_true[i][j][k]):
+                    correct_pred[(y_true[i][j][k])]+=1
+                den[(y_pred[i][j][k])] += 1
+                den[(y_true[i][j][k])] += 1
     mIoU = 0
     for i in range(num_classes):
         if den[i]!=0:
-            mIoU+=intersection[i]/(den[i]-intersection[i])
+            mIoU+=correct_pred[i]/(den[i]-correct_pred[i])
         else:
             mIoU+=1
     mIoU=mIoU/num_classes
@@ -34,20 +34,20 @@ def mean_iou_test(y_true, y_pred, num_classes):
 
 # dice coefficient
 def dice_coeff(y_true, y_pred, num_classes):
-    intersection = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
+    correct_pred = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
     den = np.zeros(num_classes) # den = M + W + B = (M or W or B) + (M and W and B) + ..
 
-    for i in range (len(y_true)):
-        for j in range(512):
-            for k in range(512):
+    for i in range (y_true.shape[0]):
+        for j in range(y_true.shape[1]):
+            for k in range(y_true.shape[2]):
                 if y_pred[i][j][k]==y_true[i][j][k]:
-                    intersection[y_true[i][j][k]]+=1
+                    correct_pred[y_true[i][j][k]]+=1
                 den[y_pred[i][j][k]] += 1
                 den[y_true[i][j][k]] += 1
     dice = 0
     for i in range(num_classes):
         if den[i]!=0:
-            dice+=2*intersection[i]/2*intersection[i]+(den[i]-intersection[i])
+            dice+=2*correct_pred[i]/correct_pred[i]+(den[i]-correct_pred[i])
         else:
             dice+=1
     dice=dice/num_classes
@@ -58,28 +58,23 @@ def dice_coeff(y_true, y_pred, num_classes):
 
 
 def pixel_accuracy(y_true, y_pred, num_classes):
-    intersection = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
-    den = np.zeros(num_classes) # den = M + W + B = (M or W or B) + (M and W and B) + ..
+    correct_pred = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
 
-    for i in range (len(y_true)):
-        for j in range(512):
-            for k in range(512):
+    for i in range (y_true.shape[0]):
+        for j in range(y_true.shape[1]): # height
+            for k in range(y_true.shape[2]): # width
                 if y_pred[i][j][k]==y_true[i][j][k]:
-                    intersection[y_true[i][j][k]]+=1
+                    correct_pred[y_true[i][j][k]]+=1
+    
+
     pix_acc = 0
-    for i in range(num_classes):
-        if den[i]!=0:
-            pix_acc+=intersection[i]
+    for i in range(1,num_classes):
+        tot = (y_true==i).sum()
+        if tot!=0:
+            pix_acc+=correct_pred[i]/tot
         else:
-            pix_acc+=1
-    pix_acc=pix_acc/num_classes
+            pix_acc+=pix_acc
+
+    pix_acc=pix_acc/(num_classes-1)
     return pix_acc
 
-
-def pixel_accuracy_multiclass(y_true, y_pred):
-    yt0 = y_true[:,:,:,0]
-    yp0 = (y_pred[:,:,:,0] > 0.5).astype(int)
-    intersection = np.logical_and(yt0, yp0) #TP
-    class1 = np.sum(yt0) #TP+FN
-    acc = np.sum(intersection)/class1
-    return acc
