@@ -47,7 +47,7 @@ def dice_coeff(y_true, y_pred, num_classes):
     dice = 0
     for i in range(num_classes):
         if den[i]!=0:
-            dice+=2*correct_pred[i]/correct_pred[i]+(den[i]-correct_pred[i])
+            dice+=2*correct_pred[i]/den[i]
         else:
             dice+=1
     dice=dice/num_classes
