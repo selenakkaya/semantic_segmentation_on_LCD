@@ -21,13 +21,11 @@ def mean_iou_test(y_true, y_pred, num_classes):
     mIoU = 0
     IoU_classes = []
     for i in range(num_classes):
-        tot = (y_true==i).sum()
         if den[i]!=0:
-            mIoU+=correct_pred[i]/(den[i]-correct_pred[i])
-            IoU_classes.append(correct_pred[i]/tot)
-        else:
-            mIoU+=1
-    mIoU=mIoU/num_classes
+            IoU =correct_pred[i]/(den[i]-correct_pred[i])
+            IoU_classes.append(IoU)
+
+    mIoU=sum(IoU_classes)/len(IoU_classes)
     return mIoU, IoU_classes
 
 
@@ -49,15 +47,13 @@ def dice_coeff(y_true, y_pred, num_classes):
                 den[y_true[i][j][k]] += 1
     dice = 0
     dice_classes = []
+
     for i in range(num_classes):
-        tot = (y_true==i).sum
         if den[i]!=0:
-            dice+=2*correct_pred[i]/den[i]
-            dice_classes =  dice_classes.append(correct_pred[i]/tot)
-        else:
-            dice+=1
-    dice=dice/num_classes
-    return dice, dice_classes
+            dice=2*correct_pred[i]/den[i]
+            dice_classes.append(dice)
+    mDice=sum(dice_classes)/len(dice_classes)
+    return mDice, dice_classes
 
 
 
