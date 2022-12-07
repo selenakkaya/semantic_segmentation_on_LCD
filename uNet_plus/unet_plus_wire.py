@@ -1,10 +1,13 @@
 #set parametrs
-EPOCHS =
+EPOCHS = 250
 PATIENCE = 50
-BATCH_SIZE =
-OPTIMIZER = 'rmsprop' #or adam
+BATCH_SIZE = 5
+OPTIMIZER = 'adam' #or rmsprop
 DIM = 512
-MODEL_NAME =
+MODEL_NAME = 'mesh_unet_plus_wire.h5'
+
+CATEGORY = 'wire'
+
 
 import numpy as np
 import random
@@ -18,11 +21,39 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import backend as K
 from evaluation import mean_iou_test, dice_coeff, pixel_accuracy, pixel_accuracy_class1
 
+
 tf.random.set_seed(1)
+src_arr = 'saved_arrays_unetP' 
 
 
-#TODO load images and masks for train val and test. Normalize images in [0,1]. Expand dims of masks in the last channel
+#load images and masks for train val and test. Normalize images in [0,1]. Expand dims of masks in the last channel
 #choose if adding augmented images or not
+
+
+train_images = np.load(src_arr + "/" + CATEGORY + "/wire_train_images.npy")
+cw_images = np.load(src_arr + "/cw/cw_images.npy") #images without mesh
+train_images = np.concatenate((train_images, cw_images), axis=0)[:5]
+train_images = train_images/255.0
+
+train_masks = np.load(src_arr + "/" + CATEGORY + "/wire_train_masks.npy")
+cw_masks = np.load(src_arr + "/cw/cw_masks.npy")
+train_masks = np.concatenate((train_masks, cw_masks), axis=0)[:5]
+train_masks = np.expand_dims(train_masks, axis=-1)
+
+val_images = np.load(src_arr + "/" + CATEGORY + "/wire_val_images.npy")[:5]
+val_images = val_images/255.0
+val_masks = np.load(src_arr + "/" + CATEGORY + "/wire_val_masks.npy")[:5]
+val_masks = np.expand_dims(val_masks, axis=-1)
+
+test_images = np.load(src_arr + "/" + CATEGORY + "/wire_test_images.npy")[:5]
+test_images = test_images/255.0
+test_masks = np.load(src_arr + "/" + CATEGORY + "/wire_test_masks.npy")[:5]
+test_masks = np.expand_dims(test_masks, axis=-1)
+
+print(train_images.shape)
+print(train_masks.shape)
+
+
 
 sample_dir = "samples_wire" #where to save the predictions
 if not os.path.exists(sample_dir):
@@ -32,22 +63,9 @@ checkpoint_path = "checkpoints" #where to save the model checkpoints
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
 
-#during training
-def mean_iou(y_true, y_pred):
-    yt0 = y_true[:,:,:,0]
-    yp0 = K.cast(y_pred[:,:,:,0] > 0.5, 'float32')
-    inter = tf.math.count_nonzero(tf.logical_and(tf.equal(yt0, 1), tf.equal(yp0, 1)))
-    union = tf.math.count_nonzero(tf.add(yt0, yp0))
-    iou = tf.where(tf.equal(union, 0), 1., tf.cast(inter/union, 'float32'))
-    return iou
 
-def unet_plus():
-  #TODO write the unet++
 
-  model = Model(inputs=[inputs], outputs=[outputs])
-  model.compile(optimizer = OPTIMIZER, loss = 'binary_crossentropy', metrics = [mean_iou])
-  
-  return model
+
 
 def plot_img_and_masks(raw, mask):
     # image + prediction mask + target mask
@@ -71,8 +89,8 @@ def build_callbacks():
     ]
     return checkpointer
 
-
-model = unet_plus(sz=(DIM,DIM,3))
+from unet_plus_model import model_build_func
+model = model_build_func((DIM,DIM,3), 1, False)
 model.summary()
 
 """## Training"""
@@ -84,6 +102,11 @@ model.fit(train_images, train_masks, batch_size=BATCH_SIZE, epochs=EPOCHS, valid
 Qualitative measure: plot test image, prediction mask and target mask
 """
 
+""
+sample_dir = "unetP_samples_mesh_cw" #where to save the predictions
+if not os.path.exists(sample_dir):
+    os.mkdir(sample_dir)
+
 for i in range(test_images.shape[0]):
     test_img = test_images[i]
     test_mask = test_masks[i][:,:,0]
@@ -92,6 +115,17 @@ for i in range(test_images.shape[0]):
 
 
 """Quantitative measures"""
+print("TEST RESULTS for unet++")
+
 pred_masks = model.predict(test_images)
 
 #TODO print the four measures on test set
+
+iou = mean_iou_test(test_masks, pred_masks)
+print("mean iou", iou)
+dice = dice_coeff(test_masks, pred_masks)
+print("dice coeff.", dice)
+acc = pixel_accuracy(test_masks, pred_masks)
+print("pixel acc.", acc)
+acc_for_wire = pixel_accuracy_class1(test_masks, pred_masks)
+print("pixel acc. for wire only", acc_for_wire)
