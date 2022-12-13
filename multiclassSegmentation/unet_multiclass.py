@@ -20,7 +20,7 @@ OPTIMIZER = 'adam'
 DIM = 512
 MODEL_NAME = "unet_multiclass.h5"
 
-src_path = "../processing/saved_arrays_multiclass"
+src_path = "saved_arrays_multiclass"
 train_images = np.load(src_path + "/train_images.npy")[:100] #FIXME aggiungere tutte le immagini
 train_masks = np.load(src_path + "/train_masks.npy")[:100]
 val_images = np.load(src_path + "/val_images.npy")[:100]
@@ -137,14 +137,17 @@ for i in range(test_images.shape[0]):
 
 
 """Quantitative measures"""
+
+from evaluation_multiclass import mean_iou_test, dice_coeff, pixel_accuracy
+
 print("TEST RESULTS")
 pred_masks = model.predict(test_images)
 
-iou = mean_iou_test(test_masks, pred_masks)
+iou = mean_iou_test(test_masks, pred_masks,3)
 print("mean iou", iou)
-dice = dice_coeff(test_masks, pred_masks)
+dice = dice_coeff(test_masks, pred_masks,3)
 print("dice coeff.", dice)
-acc = pixel_accuracy(test_masks, pred_masks)
+acc = pixel_accuracy(test_masks, pred_masks,3)
 print("pixel acc.", acc)
 
 
