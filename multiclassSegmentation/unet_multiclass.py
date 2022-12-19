@@ -15,18 +15,19 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 DIM = 512
 EPOCHS = 250
 PATIENCE = 50
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 OPTIMIZER = 'adam'
+N_CLASSES = 3
 DIM = 512
 MODEL_NAME = "unet_multiclass.h5"
 
-src_path = "saved_arrays_multiclass"
-train_images = np.load(src_path + "/train_images.npy")[:100] #FIXME aggiungere tutte le immagini
-train_masks = np.load(src_path + "/train_masks.npy")[:100]
-val_images = np.load(src_path + "/val_images.npy")[:100]
-val_masks = np.load(src_path + "/val_masks.npy")[:100]
-test_images = np.load(src_path + "/test_images.npy")[:100]
-test_masks = np.load(src_path + "/test_masks.npy")[:100]
+src_path = "/home/sakkaya/multiclass_segmentation/saved_arrays_multiclass"
+train_images = np.load(src_path + "/train_images.npy")[:16] #FIXME aggiungere tutte le immagini
+train_masks = np.load(src_path + "/train_masks.npy")[:16]
+val_images = np.load(src_path + "/val_images.npy")[:16]
+val_masks = np.load(src_path + "/val_masks.npy")[:16]
+test_images = np.load(src_path + "/test_images.npy")[:16]
+test_masks = np.load(src_path + "/test_masks.npy")[:16]
 print("train images", train_images.shape)
 print("train masks", train_masks.shape)
 print("val images", val_images.shape)
@@ -45,16 +46,31 @@ if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
 
 
-def mean_iou(y_true, y_pred):
-    yt0 = y_true[:,:,:,0]
-    yp0 = K.cast(y_pred[:,:,:,0] > 0.5, 'float32')
-    inter = tf.math.count_nonzero(tf.logical_and(tf.equal(yt0, 1), tf.equal(yp0, 1)))
-    union = tf.math.count_nonzero(tf.add(yt0, yp0))
-    iou = tf.where(tf.equal(union, 0), 1., tf.cast(inter/union, 'float32'))
-    return iou
+def mean_iou(y_true, y_pred, num_classes):
+    num_classes = 3
+    correct_pred = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
+    den = np.zeros(num_classes) # den = M + W + B = (M or W or B) + (M and W and B) + ..
+
+    for i in range (y_true.shape[0]):
+        for j in range(y_true.shape[1]):
+            for k in range(y_true.shape[2]):
+                if (y_pred[i][j][k])==(y_true[i][j][k]):
+                    correct_pred[(y_true[i][j][k])]+=1
+                den[(y_pred[i][j][k])] += 1
+                den[(y_true[i][j][k])] += 1
+    mIoU = 0
+    IoU_classes = []
+    for i in range(num_classes):
+        if den[i]!=0:
+            IoU =correct_pred[i]/(den[i]-correct_pred[i])
+            IoU_classes.append(IoU)
+
+    mIoU=sum(IoU_classes)/len(IoU_classes)
+    return mIoU
+    
 
 
-def unet(sz, n_classes=3):
+def unet(sz, n_classes):
     x = Input(sz)
     inputs = x
     # down sampling
@@ -62,8 +78,8 @@ def unet(sz, n_classes=3):
     layers = []
 
     for i in range(0, 6):
-        x = Conv2D(f, 3, activation='relu', padding='same')(x)
-        x = Conv2D(f, 3, activation='relu', padding='same')(x)
+        x = Conv2D(f, 3, activation='softmax', padding='same')(x)
+        x = Conv2D(f, 3, activation='softmax', padding='same')(x)
         layers.append(x)
         x = MaxPooling2D()(x)
         f = f * 2
@@ -71,8 +87,8 @@ def unet(sz, n_classes=3):
 
     # bottleneck
     j = len(layers) - 1
-    x = Conv2D(f, 3, activation='relu', padding='same')(x)
-    x = Conv2D(f, 3, activation='relu', padding='same')(x)
+    x = Conv2D(f, 3, activation='softmax', padding='same')(x)
+    x = Conv2D(f, 3, activation='softmax', padding='same')(x)
     x = Conv2DTranspose(ff2, 2, strides=(2, 2), padding='same')(x)
     x = Concatenate(axis=3)([x, layers[j]])
     j = j - 1
@@ -81,20 +97,20 @@ def unet(sz, n_classes=3):
     for i in range(0, 5):
         ff2 = ff2 // 2
         f = f // 2
-        x = Conv2D(f, 3, activation='relu', padding='same')(x)
-        x = Conv2D(f, 3, activation='relu', padding='same')(x)
+        x = Conv2D(f, 3, activation='softmax', padding='same')(x)
+        x = Conv2D(f, 3, activation='softmax', padding='same')(x)
         x = Conv2DTranspose(ff2, 2, strides=(2, 2), padding='same')(x)
         x = Concatenate(axis=3)([x, layers[j]])
         j = j - 1
 
     # classification
-    x = Conv2D(f, 3, activation='relu', padding='same')(x)
-    x = Conv2D(f, 3, activation='relu', padding='same')(x)
+    x = Conv2D(f, 3, activation='softmax', padding='same')(x)
+    x = Conv2D(f, 3, activation='softmax', padding='same')(x)
     outputs = Conv2D(n_classes, 1, activation='softmax')(x)
 
     # model creation
     model = Model(inputs=[inputs], outputs=[outputs])
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy', mean_iou])
+    model.compile(optimizer= OPTIMIZER, loss='categorical_crossentropy', metrics=[mean_iou])
     return model
 
 
@@ -119,10 +135,10 @@ def build_callbacks():
     return checkpointer
 
 
-model = unet(sz=(DIM,DIM,3))
+model = unet(sz=(DIM,DIM,3), n_classes=N_CLASSES)
 print(model.summary())
 
-model.fit(train_images, train_masks,  batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(val_images, val_masks), callbacks = build_callbacks())
+model.fit(train_images, train_masks,  batch_size=BATCH_SIZE, verbose=1, epochs=EPOCHS, validation_data=(val_images, val_masks), callbacks = build_callbacks())
 
 
 sample_dir = "samples_multiclass" #where to save the predictions
@@ -143,11 +159,11 @@ from evaluation_multiclass import mean_iou_test, dice_coeff, pixel_accuracy
 print("TEST RESULTS")
 pred_masks = model.predict(test_images)
 
-iou = mean_iou_test(test_masks, pred_masks,3)
+iou = mean_iou_test(test_masks, pred_masks,num_classes=3)
 print("mean iou", iou)
-dice = dice_coeff(test_masks, pred_masks,3)
+dice = dice_coeff(test_masks, pred_masks,num_classes=3)
 print("dice coeff.", dice)
-acc = pixel_accuracy(test_masks, pred_masks,3)
+acc = pixel_accuracy(test_masks, pred_masks,num_classes=3)
 print("pixel acc.", acc)
 
 
