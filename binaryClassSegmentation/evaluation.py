@@ -30,3 +30,10 @@ def pixel_accuracy(y_true, y_pred):
     acc = correct_preds/tot
     return acc
 
+def pixel_accuracy_class1(y_true, y_pred):
+    yt0 = y_true[:,:,:,0]
+    yp0 = (y_pred[:,:,:,0] > 0.5).astype(int)
+    intersection = np.logical_and(yt0, yp0) #TP
+    class1 = np.sum(yt0) #TP+FN
+    acc = np.sum(intersection)/class1
+    return acc
