@@ -17,8 +17,8 @@ import os
 IMG_RES_W = 512  # output image width Potenza di 2
 IMG_RES_H = 512  # output image height
 SAVE_IMAGES = False # if you want to save mask images for a visual check
-CATEGORY = "mesh" #mesh or wire
-src_path = "../../sources"
+CATEGORY = "wire" #mesh or wire
+src_path = "../sources"
 
 
 def draw_image_and_mask(img_res_h, img_res_w, img_res, mask_res):
@@ -37,7 +37,7 @@ def draw_image_and_mask(img_res_h, img_res_w, img_res, mask_res):
     return double_img
 
 
-dst_dir_arr = "saved_arrays/" + CATEGORY
+dst_dir_arr = "saved_arrays_unetP/" + CATEGORY
 if not os.path.exists(dst_dir_arr):
     os.makedirs(dst_dir_arr)
 

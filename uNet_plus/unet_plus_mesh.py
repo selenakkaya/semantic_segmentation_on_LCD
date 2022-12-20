@@ -4,9 +4,9 @@ PATIENCE = 50
 BATCH_SIZE = 8
 OPTIMIZER = 'adam' #or rmsprop
 DIM = 512
-MODEL_NAME = 'mesh_unet_plus_wire.h5'
+MODEL_NAME = 'mesh_unet_plus.h5'
 
-CATEGORY = 'wire'
+CATEGORY = 'mesh'
 
 
 import numpy as np
@@ -30,20 +30,20 @@ src_arr = '/home/sakkaya/UNetPlus/saved_arrays'
 #choose if adding augmented images or not
 
 
-train_images = np.load(src_arr + "/" + CATEGORY + "/wire_train_images.npy")
+train_images = np.load(src_arr + "/" + CATEGORY + "/mesh_train_images.npy")
 train_images = train_images/255.0
 
-train_masks = np.load(src_arr + "/" + CATEGORY + "/wire_train_masks.npy")
+train_masks = np.load(src_arr + "/" + CATEGORY + "/mesh_train_masks.npy")
 train_masks = np.expand_dims(train_masks, axis=-1)
 
-val_images = np.load(src_arr + "/" + CATEGORY + "/wire_val_images.npy")
+val_images = np.load(src_arr + "/" + CATEGORY + "/mesh_val_images.npy")
 val_images = val_images/255.0
-val_masks = np.load(src_arr + "/" + CATEGORY + "/wire_val_masks.npy")
+val_masks = np.load(src_arr + "/" + CATEGORY + "/mesh_val_masks.npy")
 val_masks = np.expand_dims(val_masks, axis=-1)
 
-test_images = np.load(src_arr + "/" + CATEGORY + "/wire_test_images.npy")
+test_images = np.load(src_arr + "/" + CATEGORY + "/mesh_test_images.npy")
 test_images = test_images/255.0
-test_masks = np.load(src_arr + "/" + CATEGORY + "/wire_test_masks.npy")
+test_masks = np.load(src_arr + "/" + CATEGORY + "/mesh_test_masks.npy")
 test_masks = np.expand_dims(test_masks, axis=-1)
 
 print(train_images.shape)

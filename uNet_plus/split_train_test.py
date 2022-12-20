@@ -17,7 +17,7 @@ SIZE = 512
 TRAIN_SIZE = 0.75
 VAL_SIZE = 0.15
 
-src_path = "saved_arrays/" + CATEGORY
+src_path = "saved_arrays_unetP/" + CATEGORY
 images = np.load(src_path + "/" + CATEGORY + "_images.npy")
 masks = np.load(src_path + "/" + CATEGORY + "_masks.npy")
 filenames = np.load(src_path + "/" + CATEGORY + "_filenames.npy")

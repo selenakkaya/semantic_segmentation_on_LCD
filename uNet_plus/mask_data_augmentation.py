@@ -53,7 +53,7 @@ def get_augmented_image(img, mask):
 
 if __name__ == '__main__':
     CATEGORY = "mesh"  # mesh or wire
-    src_path = "saved_arrays/" + CATEGORY
+    src_path = "saved_arrays_unetP/" + CATEGORY
     train_images = np.load(src_path + "/" + CATEGORY + "_train_images.npy")
     train_masks = np.load(src_path + "/" + CATEGORY + "_train_masks.npy")
     val_images = np.load(src_path + "/" + CATEGORY + "_val_images.npy")
