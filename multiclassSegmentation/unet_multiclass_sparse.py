@@ -26,6 +26,10 @@ N_CLASSES = 3
 DIM = 512
 MODEL_NAME = "unet_multiclass.h5"
 
+src_path = "saved_arrays_multiclass/"
+
+#src_path = "/home/sakkaya/multiclass_segmentation/saved_arrays_multiclass"
+
 
 train_images = np.load("val_images.npy")[0:1]
 train_masks_one_hot = np.load("val_masks.npy")[0:1]
