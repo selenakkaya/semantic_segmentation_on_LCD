@@ -1,9 +1,9 @@
 EPOCHS = 250
 PATIENCE = 50
-BATCH_SIZE = 10
+BATCH_SIZE = 16
 DIM = 512
-MODEL_NAME = "smaller_enc_dec_adam_bce_mesh.h5"
-CATEGORY = "mesh" #mesh or mesh
+MODEL_NAME = "smaller_enc_dec_rmsprop_bfl_wire.h5"
+CATEGORY = "wire" 
 
 import numpy as np
 import tensorflow as tf
@@ -46,7 +46,7 @@ print(train_masks.shape)
 
 #checkpoint_path = "../checkpoints/standard_softmax" #where to save the model checkpoints
 
-checkpoint_path = "/home/sakkaya/std_unet_gs/smaller_enc_dec/mesh/smaller_enc_dec_adam_bce_mesh_"+CATEGORY #where to save the model checkpoints
+checkpoint_path = "/home/sakkaya/std_unet_gs/smaller_enc_dec/wire/smaller_enc_dec_rmsprop_bfl_"+CATEGORY #where to save the model checkpoints
 
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
@@ -60,6 +60,24 @@ def mean_iou(y_true, y_pred):
     union = tf.math.count_nonzero(tf.add(yt0, yp0))
     iou = tf.where(tf.equal(union, 0), 1., tf.cast(inter/union, 'float32'))
     return iou
+
+
+def binary_focal_loss(gamma=2., alpha=.25):
+   
+    def binary_focal_loss_fixed(y_true, y_pred):
+       
+        pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
+        pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+
+        epsilon = K.epsilon()
+        # clip to prevent NaN's and Inf's
+        pt_1 = K.clip(pt_1, epsilon, 1. - epsilon)
+        pt_0 = K.clip(pt_0, epsilon, 1. - epsilon)
+
+        return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1)) \
+               -K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0))
+
+    return binary_focal_loss_fixed
 
 def unet(sz = (DIM, DIM, 3)):
   x = Input(sz)
@@ -117,7 +135,7 @@ def unet(sz = (DIM, DIM, 3)):
 
   #model creation 
   model = Model(inputs=[inputs], outputs=[outputs])
-  model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001), loss = "binary_crossentropy", metrics = [mean_iou])
+  model.compile(optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.0001), loss = binary_focal_loss(gamma=2.0, alpha=0.25), metrics = [mean_iou])
                 
 
   """## Training"""
@@ -138,7 +156,7 @@ def unet(sz = (DIM, DIM, 3)):
   plt.ylabel('Loss')
   plt.legend()
   plt.show()
-  plt.savefig('/home/sakkaya/std_unet_gs/smaller_enc_dec/mesh/smaller_enc_dec_adam_bce_mesh.png')
+  plt.savefig('/home/sakkaya/std_unet_gs/smaller_enc_dec/wire/smaller_enc_dec_rmsprop_bfl_wire.png')
 
   return model
 
@@ -171,7 +189,7 @@ model.summary()
 
 
 """Quantitative measures"""
-print("TEST RESULTS for mesh std unet")
+print("TEST RESULTS for wire std unet")
 pred_masks = model.predict(test_images)
 
 iou = mean_iou_test(test_masks, pred_masks)
