@@ -1,9 +1,9 @@
-EPOCHS = 250
-PATIENCE = 50
-BATCH_SIZE = 10
+EPOCHS = 300
+PATIENCE = 100
+BATCH_SIZE = 12
 DIM = 512
-MODEL_NAME = "filter_size_32_adam_lr_0001_bce_mesh.h5"
-CATEGORY = "mesh" #mesh or mesh
+MODEL_NAME = "filter_size_rmsprop_bfl_wire.h5"
+CATEGORY = "wire" #wire or mesh
 
 import numpy as np
 import tensorflow as tf
@@ -46,7 +46,7 @@ print(train_masks.shape)
 
 #checkpoint_path = "../checkpoints/standard_softmax" #where to save the model checkpoints
 
-checkpoint_path = "/home/sakkaya/std_unet_gs/best_with_smaller_filters/mesh/filter_size_32_adam_lr_0001_bce_mesh"+CATEGORY #where to save the model checkpoints
+checkpoint_path = "/home/sakkaya/std_unet_gs/best_with_smaller_filters/wire/checkpoints_filter_size_rmsprop_bfl_"+CATEGORY #where to save the model checkpoints
 
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
@@ -60,6 +60,25 @@ def mean_iou(y_true, y_pred):
     union = tf.math.count_nonzero(tf.add(yt0, yp0))
     iou = tf.where(tf.equal(union, 0), 1., tf.cast(inter/union, 'float32'))
     return iou
+
+def binary_focal_loss(gamma=2., alpha=.25):
+   
+    def binary_focal_loss_fixed(y_true, y_pred):
+       
+        pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
+        pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+
+        epsilon = K.epsilon()
+        # clip to prevent NaN's and Inf's
+        pt_1 = K.clip(pt_1, epsilon, 1. - epsilon)
+        pt_0 = K.clip(pt_0, epsilon, 1. - epsilon)
+
+        return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1)) \
+               -K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0))
+
+    return binary_focal_loss_fixed
+
+
 
 def unet(sz = (DIM, DIM, 3)):
   x = Input(sz)
@@ -96,25 +115,25 @@ def unet(sz = (DIM, DIM, 3)):
   #upsampling 
 
 
-  u6 = Conv2DTranspose(512, 2, strides=(2, 2))(c5)
+  u6 = Conv2DTranspose(256, 2, strides=(2, 2))(c5)
   u6 = concatenate([u6,c4])
   c6 = Conv2D(256, 3, activation='relu', padding = "same") (u6)
   c6 = Conv2D(256, 3, activation='relu', padding = "same") (c6)
 
 
-  u7 = Conv2DTranspose(256, 2, strides=(2, 2))(c6)
+  u7 = Conv2DTranspose(128, 2, strides=(2, 2))(c6)
   u7 = concatenate([u7,c3])
   c7 = Conv2D(128, 3, activation='relu', padding = "same") (u7)
   c7 = Conv2D(128, 3, activation='relu', padding = "same") (c7)
 
 
-  u8 = Conv2DTranspose(128, 2, strides=(2, 2))(c7)
+  u8 = Conv2DTranspose(64, 2, strides=(2, 2))(c7)
   u8 = concatenate([u8,c2])
   c8 = Conv2D(64, 3, activation='relu', padding = "same") (u8)
   c8 = Conv2D(64, 3, activation='relu', padding = "same") (c8)
   
 
-  u9 = Conv2DTranspose(64, 2, strides=(2, 2))(c8)
+  u9 = Conv2DTranspose(32, 2, strides=(2, 2))(c8)
   u9 = concatenate([u9,c1], axis=3)
   c9 = Conv2D(32, 3, activation='relu', padding = "same") (u9)
   c9 = Conv2D(32, 3, activation='relu', padding = "same") (c9)
@@ -126,10 +145,11 @@ def unet(sz = (DIM, DIM, 3)):
 
   #model creation 
   model = Model(inputs=[inputs], outputs=[outputs])
-  model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001), loss = "binary_crossentropy", metrics = [mean_iou])
+  model.compile(optimizer = "rmsprop", loss = binary_focal_loss(gamma=2.0, alpha=0.25), metrics = [mean_iou])
                 
 
   """## Training"""
+  
 
   history = model.fit(train_images, train_masks, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(val_images, val_masks), callbacks = build_callbacks())
  
@@ -142,12 +162,12 @@ def unet(sz = (DIM, DIM, 3)):
 
   plt.plot(epochs, loss, 'bo', label='Training Loss')
   plt.plot(epochs, val_loss, 'r', label='Validation Loss')
-  plt.title('Training and Validation Loss')
+  plt.title('Training and Validation Loss : Grid Search --> rmsprop + Binary Focal Loss')
   plt.xlabel('Epochs')
   plt.ylabel('Loss')
   plt.legend()
   plt.show()
-  plt.savefig('/home/sakkaya/std_unet_gs/best_with_smaller_filters/mesh/filter_size_32_adam_lr_0001_bce_mesh.png')
+  plt.savefig('/home/sakkaya/std_unet_gs/best_with_smaller_filters/wire/loss_filter_size_rmsprop_bfl_wire.png')
 
   return model
 
@@ -178,9 +198,26 @@ model.summary()
 
 
 
+       
+"""## Results on test set
+
+Qualitative measure: plot test image, prediction mask and target mask
+"""
+sample_dir = "/home/sakkaya/std_unet_gs/best_with_smaller_filters/wire/samples_filter_size_rmsprop_bfl_wire_" + CATEGORY #where to save the predictions
+#sample_dir = "samples_unet_wire"
+if not os.path.exists(sample_dir):
+    os.mkdir(sample_dir)
+
+for i in range(test_images.shape[0]):
+    test_img = test_images[i]
+    test_mask = test_masks[i][:,:,0]
+    combined = plot_img_and_masks(test_img, test_mask)
+    cv2.imwrite(sample_dir + "/" + str(i) + '.jpg', combined * 255)
+
+
 
 """Quantitative measures"""
-print("TEST RESULTS for mesh std unet")
+print("TEST RESULTS : Grid Search --> filter size srmsprop + Binary Focal Loss")
 pred_masks = model.predict(test_images)
 
 iou = mean_iou_test(test_masks, pred_masks)
