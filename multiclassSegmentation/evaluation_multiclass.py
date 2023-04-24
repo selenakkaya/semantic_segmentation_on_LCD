@@ -8,6 +8,11 @@ import numpy as np
 
 # correct_pred over : percent overlap between the target mask and our prediction
 def mean_iou_test(y_true, y_pred, num_classes):
+    """
+    Return mean IoU for multiclass segmentation, and the list with IoU for each class
+    y_true: targets (N,h,w). For each pixel is assigned the id of the class
+    y_pred: predictions (N, h,w), where N is the number of examples. For each pixel is assigned the id of the class
+    """
     correct_pred = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
     den = np.zeros(num_classes) # den = M + W + B = (M or W or B) + (M and W and B) + ..
 
@@ -81,27 +86,6 @@ def pixel_accuracy_one_class(y_true, y_pred, num_classes):
     return pix_acc
 
 
-
-def pixel_accuracy_backup(y_true, y_pred, num_classes):
-    correct_pred = np.zeros(num_classes) # int = (mesh : M, wire : W and background : B)
-
-    for i in range (y_true.shape[0]):
-        for j in range(y_true.shape[1]): # height
-            for k in range(y_true.shape[2]): # width
-                if y_pred[i][j][k]==y_true[i][j][k]:
-                    correct_pred[y_true[i][j][k]]+=1
-    
-
-    pix_acc = 0
-    for i in range(num_classes):
-        tot = (y_true==i).sum()
-        if tot!=0:
-            pix_acc+=correct_pred[i]/tot
-        else:
-            pix_acc+=pix_acc
-
-    pix_acc=pix_acc/num_classes
-    return pix_acc
 
 
 
