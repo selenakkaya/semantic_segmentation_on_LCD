@@ -4,7 +4,7 @@ PATIENCE = 50
 BATCH_SIZE = 16
 OPTIMIZER = 'adam' #or rmsprop
 DIM = 512
-MODEL_NAME = 'mesh_unet_plus.h5'
+MODEL_NAME = '....h5'
 
 CATEGORY = 'mesh'
 
@@ -65,23 +65,17 @@ if not os.path.exists(checkpoint_path):
 
 def plot_img_and_masks(raw, mask):
     # image + prediction mask + target mask
-    pred = model.predict(np.expand_dims(raw, 0))
-    pred_msk = pred.squeeze()
-    pred_msk = np.stack((pred_msk,) * 3, axis=-1)
-    pred_msk[pred_msk >= 0.5] = 1
-    pred_msk[pred_msk < 0.5] = 0
-    target_msk = np.stack((mask,) * 3, axis=-1)
-    raw = np.float32(raw)
-    raw = cv2.cvtColor(raw, cv2.COLOR_RGB2BGR)
-    combined = np.concatenate([raw, pred_msk, target_msk], axis=1)
+   """...
+   .
+   ..."""
     return combined
 
 
 
 def build_callbacks():
     checkpointer = [
-          EarlyStopping(monitor="val_mean_iou", patience=PATIENCE, restore_best_weights=True, mode="max"),
-          ModelCheckpoint(checkpoint_path + '/' + MODEL_NAME, monitor="val_mean_iou", save_best_only=True, mode='max')
+          EarlyStopping(monitor="...", patience=PATIENCE, restore_best_weights=True, mode="..."),
+          ModelCheckpoint(checkpoint_path + '/' + MODEL_NAME, monitor="...", save_best_only=True, mode='...')
     ]
     return checkpointer
 

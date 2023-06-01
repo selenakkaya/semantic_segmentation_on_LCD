@@ -2,7 +2,7 @@ EPOCHS = 250
 PATIENCE = 50
 BATCH_SIZE = 10
 DIM = 512
-MODEL_NAME = "standard_unet_aug_mesh_64.h5"
+MODEL_NAME = "....h5"
 CATEGORY = "mesh" #wire or mesh
 
 import numpy as np
@@ -16,7 +16,7 @@ import os
 from evaluation import mean_iou_test, dice_coeff, pixel_accuracy, pixel_accuracy_one_class
 
 tf.random.set_seed(1)
-src_arr = "/home/sakkaya/binary-segmentation/saved_arrays/" + CATEGORY # HPC
+src_arr = "/.../" + CATEGORY # HPC
 #src_arr = "../saved_arrays/" + CATEGORY # local pc
 
 
@@ -46,7 +46,7 @@ print(train_masks.shape)
 
 #checkpoint_path = "../checkpoints/standard_softmax" #where to save the model checkpoints
 
-checkpoint_path = "/home/sakkaya/std_unet/mesh/checkpoints_std_aug_"+CATEGORY #where to save the model checkpoints
+checkpoint_path = "/.../"+CATEGORY #where to save the model checkpoints
 
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
@@ -54,11 +54,9 @@ if not os.path.exists(checkpoint_path):
 
 #during training
 def mean_iou(y_true, y_pred):
-    yt0 = y_true[:,:,:,0]
-    yp0 = K.cast(y_pred[:,:,:,0] > 0.5, 'float32')
-    inter = tf.math.count_nonzero(tf.logical_and(tf.equal(yt0, 1), tf.equal(yp0, 1)))
-    union = tf.math.count_nonzero(tf.add(yt0, yp0))
-    iou = tf.where(tf.equal(union, 0), 1., tf.cast(inter/union, 'float32'))
+    """...
+    .
+    ..."""
     return iou
 
 def unet(sz = (DIM, DIM, 3)):
@@ -68,29 +66,29 @@ def unet(sz = (DIM, DIM, 3)):
   
   #downsampling
 
-  c1 = Conv2D(64, 3, activation='relu', padding = "same") (x)
-  c1 = Conv2D(64, 3, activation='relu', padding = "same") (c1)
+  c1 = Conv2D(64, 3, activation='...', padding = "...") (x)
+  c1 = Conv2D(64, 3, activation='...', padding = "...") (c1)
   p1 = MaxPooling2D() (c1)
 
 
-  c2 = Conv2D(128, 3, activation='relu', padding = "same") (p1)
-  c2 = Conv2D(128, 3, activation='relu', padding = "same") (c2)
+  c2 = Conv2D(128, 3, activation='...', padding = "...") (p1)
+  c2 = Conv2D(128, 3, activation='...', padding = "...") (c2)
   p2 = MaxPooling2D() (c2)
 
 
-  c3 = Conv2D(256, 3, activation='relu', padding = "same") (p2)
-  c3 = Conv2D(256, 3, activation='relu', padding = "same") (c3)
+  c3 = Conv2D(256, 3, activation='...', padding = "...") (p2)
+  c3 = Conv2D(256, 3, activation='...', padding = "...") (c3)
   p3 = MaxPooling2D() (c3)
 
 
-  c4 = Conv2D(512, 3, activation='relu', padding = "same") (p3)
-  c4 = Conv2D(512, 3, activation='relu', padding = "same") (c4)
+  c4 = Conv2D(512, 3, activation='...', padding = "...") (p3)
+  c4 = Conv2D(512, 3, activation='...', padding = "...") (c4)
   p4 = MaxPooling2D() (c4)
 
 
   #bottleneck 
-  c5 = Conv2D(1024, 3, activation='relu', padding = "same") (p4)
-  c5 = Conv2D(1024, 3, activation='relu', padding = "same") (c5)
+  c5 = Conv2D(1024, 3, activation='...', padding = "...") (p4)
+  c5 = Conv2D(1024, 3, activation='...', padding = "...") (c5)
   
 
   #upsampling 
@@ -98,36 +96,36 @@ def unet(sz = (DIM, DIM, 3)):
 
   u6 = Conv2DTranspose(512, 2, strides=(2, 2))(c5)
   u6 = concatenate([u6,c4])
-  c6 = Conv2D(512, 3, activation='relu', padding = "same") (u6)
+  c6 = Conv2D(512, 3, activation='...', padding = "...") (u6)
   c6 = Dropout(0.2)(c6)
-  c6 = Conv2D(512, 3, activation='relu', padding = "same") (c6)
+  c6 = Conv2D(512, 3, activation='...', padding = "...") (c6)
 
 
   u7 = Conv2DTranspose(256, 2, strides=(2, 2))(c6)
   u7 = concatenate([u7,c3])
-  c7 = Conv2D(256, 3, activation='relu', padding = "same") (u7)
-  c7 = Conv2D(256, 3, activation='relu', padding = "same") (c7)
+  c7 = Conv2D(256, 3, activation='...', padding = "...") (u7)
+  c7 = Conv2D(256, 3, activation='...', padding = "...") (c7)
 
 
   u8 = Conv2DTranspose(128, 2, strides=(2, 2))(c7)
   u8 = concatenate([u8,c2])
-  c8 = Conv2D(128, 3, activation='relu', padding = "same") (u8)
-  c8 = Conv2D(128, 3, activation='relu', padding = "same") (c8)
+  c8 = Conv2D(128, 3, activation='...', padding = "...") (u8)
+  c8 = Conv2D(128, 3, activation='...', padding = "...") (c8)
   
 
   u9 = Conv2DTranspose(64, 2, strides=(2, 2))(c8)
   u9 = concatenate([u9,c1], axis=3)
-  c9 = Conv2D(64, 3, activation='relu', padding = "same") (u9)
-  c9 = Conv2D(64, 3, activation='relu', padding = "same") (c9)
+  c9 = Conv2D(64, 3, activation='...', padding = "...") (u9)
+  c9 = Conv2D(64, 3, activation='...', padding = "...") (c9)
 
   
 
     
-  outputs = Conv2D(1, (1, 1),  activation='sigmoid') (c9)
+  outputs = Conv2D(1, (1, 1),  activation='...') (c9)
 
   #model creation 
   model = Model(inputs=[inputs], outputs=[outputs])
-  model.compile(optimizer = "adam", loss = "binary_crossentropy", metrics = [mean_iou])
+  model.compile(optimizer = "...", loss = "...", metrics = [...])
                 
 
   """## Training"""
@@ -148,28 +146,22 @@ def unet(sz = (DIM, DIM, 3)):
   plt.ylabel('Loss')
   plt.legend()
   plt.show()
-  plt.savefig('/home/sakkaya/std_unet/mesh/loss_std_unet_aug_mesh.png')
+  plt.savefig('/.../loss_std_unet_aug_mesh.png')
 
   return model
 
 def plot_img_and_masks(raw, mask):
     # image + prediction mask + target mask
-    pred = model.predict(np.expand_dims(raw, 0))
-    pred_msk = pred.squeeze()
-    pred_msk = np.stack((pred_msk,) * 3, axis=-1)
-    pred_msk[pred_msk >= 0.5] = 1
-    pred_msk[pred_msk < 0.5] = 0
-    target_msk = np.stack((mask,) * 3, axis=-1)
-    raw = np.float32(raw)
-    raw = cv2.cvtColor(raw, cv2.COLOR_RGB2BGR)
-    combined = np.concatenate([raw, pred_msk, target_msk], axis=1)
+   """...
+   .
+   ..."""
     return combined
 
 
 def build_callbacks():
     checkpointer = [
-          EarlyStopping(monitor="val_mean_iou", patience=PATIENCE, restore_best_weights=True, mode="max"),
-          ModelCheckpoint(checkpoint_path + '/'+ MODEL_NAME,  monitor="val_mean_iou", save_best_only=True, mode='max') #best on iou
+          EarlyStopping(monitor="...", patience=PATIENCE, restore_best_weights=True, mode="..."),
+          ModelCheckpoint(checkpoint_path + '/'+ MODEL_NAME,  monitor="...", save_best_only=True, mode='...') #best on iou
     ]
     return checkpointer
 
@@ -184,7 +176,7 @@ model.summary()
 
 Qualitative measure: plot test image, prediction mask and target mask
 """
-sample_dir = "/home/sakkaya/std_unet/mesh/samples_std_unet_aug_" + CATEGORY #where to save the predictions
+sample_dir = "/.../" + CATEGORY #where to save the predictions
 #sample_dir = "samples_unet_mesh"
 if not os.path.exists(sample_dir):
     os.mkdir(sample_dir)
