@@ -6,17 +6,17 @@
 #SBATCH --gres=gpu:1
 #SBATCH --nodes 1
 #SBATCH --ntasks-per-node 1
-#SBATCH --output /home/sakkaya/std_unet/wire/out_std_unet_wire.txt
-#SBATCH --error /home/sakkaya/std_unet/wire/err_std_unet_wire.txt
+#SBATCH --output /.../out.txt
+#SBATCH --error /.../err.txt
 #SBATCH --job-name=python-rail
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=s289332@studenti.polito.it
+#SBATCH --mail-user=....
 #SBATCH --partition=cuda
 
 module load nvidia/cudasdk/10.1
 
 source ~/.bashrc
 
-conda activate rail
+conda activate ENV_NAME 
 
-python /home/sakkaya/std_unet/wire/std_unet_wire.py 
+python /.../std_unet_wire.py 

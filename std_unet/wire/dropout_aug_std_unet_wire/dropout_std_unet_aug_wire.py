@@ -16,7 +16,7 @@ import os
 from evaluation import mean_iou_test, dice_coeff, pixel_accuracy, pixel_accuracy_one_class
 
 tf.random.set_seed(1)
-src_arr = "/home/sakkaya/binary-segmentation/saved_arrays/" + CATEGORY # HPC
+src_arr = "/.../" + CATEGORY # HPC
 #src_arr = "../saved_arrays/" + CATEGORY # local pc
 
 
@@ -46,7 +46,7 @@ print(train_masks.shape)
 
 #checkpoint_path = "../checkpoints/standard_softmax" #where to save the model checkpoints
 
-checkpoint_path = "/home/sakkaya/std_unet/wire/checkpoints_dropout_std_aug_"+CATEGORY #where to save the model checkpoints
+checkpoint_path = "/.../"+CATEGORY #where to save the model checkpoints
 
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
@@ -156,7 +156,7 @@ def unet(sz = (DIM, DIM, 3)):
   plt.ylabel('Loss')
   plt.legend()
   plt.show()
-  plt.savefig('/home/sakkaya/std_unet/wire/loss_dropout_std_unet_aug_wire.png')
+  plt.savefig('/.../loss_dropout_std_unet_aug_wire.png')
 
   return model
 
@@ -192,7 +192,7 @@ model.summary()
 
 Qualitative measure: plot test image, prediction mask and target mask
 """
-sample_dir = "/home/sakkaya/std_unet/wire/samples_dropout_aug_" + CATEGORY #where to save the predictions
+sample_dir = "/.../" + CATEGORY #where to save the predictions
 #sample_dir = "samples_unet_wire"
 if not os.path.exists(sample_dir):
     os.mkdir(sample_dir)
