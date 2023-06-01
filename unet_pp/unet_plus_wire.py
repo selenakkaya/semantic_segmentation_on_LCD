@@ -1,12 +1,12 @@
 #set parametrs
 EPOCHS = 250
 PATIENCE = 50
-BATCH_SIZE = 5
+BATCH_SIZE = 16
 OPTIMIZER = 'adam' #or rmsprop
 DIM = 512
-MODEL_NAME = 'unet_plus_mesh.h5'
+MODEL_NAME = 'mesh_unet_plus_wire.h5'
 
-CATEGORY = 'mesh'
+CATEGORY = 'wire'
 
 
 import numpy as np
@@ -23,31 +23,27 @@ from evaluation import mean_iou_test, dice_coeff, pixel_accuracy, pixel_accuracy
 
 
 tf.random.set_seed(1)
-src_arr = '/home/sakkaya/UNetPlus/saved_arrays' 
+src_arr = '/.../saved_arrays' 
 
 
 #load images and masks for train val and test. Normalize images in [0,1]. Expand dims of masks in the last channel
 #choose if adding augmented images or not
 
 
-train_images = np.load(src_arr + "/" + CATEGORY + "/mesh_train_images.npy")
-cw_images = np.load(src_arr + "/cw/cw_images.npy") #images without mesh
-train_images = np.concatenate((train_images, cw_images), axis=0)
+train_images = np.load(src_arr + "/" + CATEGORY + "/wire_train_images.npy")
 train_images = train_images/255.0
 
-train_masks = np.load(src_arr + "/" + CATEGORY + "/mesh_train_masks.npy")
-cw_masks = np.load(src_arr + "/cw/cw_masks.npy")
-train_masks = np.concatenate((train_masks, cw_masks), axis=0)
+train_masks = np.load(src_arr + "/" + CATEGORY + "/wire_train_masks.npy")
 train_masks = np.expand_dims(train_masks, axis=-1)
 
-val_images = np.load(src_arr + "/" + CATEGORY + "/mesh_val_images.npy")
+val_images = np.load(src_arr + "/" + CATEGORY + "/wire_val_images.npy")
 val_images = val_images/255.0
-val_masks = np.load(src_arr + "/" + CATEGORY + "/mesh_val_masks.npy")
+val_masks = np.load(src_arr + "/" + CATEGORY + "/wire_val_masks.npy")
 val_masks = np.expand_dims(val_masks, axis=-1)
 
-test_images = np.load(src_arr + "/" + CATEGORY + "/mesh_test_images.npy")
+test_images = np.load(src_arr + "/" + CATEGORY + "/wire_test_images.npy")
 test_images = test_images/255.0
-test_masks = np.load(src_arr + "/" + CATEGORY + "/mesh_test_masks.npy")
+test_masks = np.load(src_arr + "/" + CATEGORY + "/wire_test_masks.npy")
 test_masks = np.expand_dims(test_masks, axis=-1)
 
 print(train_images.shape)
@@ -55,11 +51,11 @@ print(train_masks.shape)
 
 
 
-sample_dir = "/home/sakkaya/UNetPlus/samples_" + CATEGORY #where to save the predictions
+sample_dir = "/.../samples_" + CATEGORY #where to save the predictions
 if not os.path.exists(sample_dir):
     os.mkdir(sample_dir)
 
-checkpoint_path = "/home/sakkaya/UNetPlus/checkpoints" #where to save the model checkpoints
+checkpoint_path = "/.../checkpoints" #where to save the model checkpoints
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
 
@@ -103,7 +99,7 @@ Qualitative measure: plot test image, prediction mask and target mask
 """
 
 ""
-sample_dir = "UNetP_samples_" + CATEGORY+ "_cw" #where to save the predictions
+sample_dir = "UNetP_samples_" + CATEGORY #where to save the predictions
 if not os.path.exists(sample_dir):
     os.mkdir(sample_dir)
 
@@ -115,7 +111,7 @@ for i in range(test_images.shape[0]):
 
 
 """Quantitative measures"""
-print("TEST RESULTS for unet++")
+print("TEST RESULTS: " + CATEGORY +" for unet++")
 
 pred_masks = model.predict(test_images)
 
@@ -127,5 +123,5 @@ dice = dice_coeff(test_masks, pred_masks)
 print("dice coeff.", dice)
 acc = pixel_accuracy(test_masks, pred_masks)
 print("pixel acc.", acc)
-acc_for_mesh = pixel_accuracy_class1(test_masks, pred_masks)
-print("pixel acc. for mesh only", acc_for_mesh)
+acc_for_wire = pixel_accuracy_class1(test_masks, pred_masks)
+print("pixel acc. for wire only", acc_for_wire)

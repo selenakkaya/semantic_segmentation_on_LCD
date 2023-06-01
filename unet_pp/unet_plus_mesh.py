@@ -1,7 +1,7 @@
 #set parametrs
 EPOCHS = 250
 PATIENCE = 50
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 OPTIMIZER = 'adam' #or rmsprop
 DIM = 512
 MODEL_NAME = 'mesh_unet_plus.h5'
@@ -23,7 +23,7 @@ from evaluation import mean_iou_test, dice_coeff, pixel_accuracy, pixel_accuracy
 
 
 tf.random.set_seed(1)
-src_arr = '/home/sakkaya/UNetPlus/saved_arrays' 
+src_arr = '/.../saved_arrays' 
 
 
 #load images and masks for train val and test. Normalize images in [0,1]. Expand dims of masks in the last channel
@@ -51,11 +51,11 @@ print(train_masks.shape)
 
 
 
-sample_dir = "/home/sakkaya/UNetPlus/samples_" + CATEGORY #where to save the predictions
+sample_dir = "/.../samples_" + CATEGORY #where to save the predictions
 if not os.path.exists(sample_dir):
     os.mkdir(sample_dir)
 
-checkpoint_path = "/home/sakkaya/UNetPlus/checkpoints" #where to save the model checkpoints
+checkpoint_path = "/.../checkpoints" #where to save the model checkpoints
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
 
