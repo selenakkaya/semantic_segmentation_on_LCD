@@ -9,20 +9,11 @@ Model performance is evaluated on test sets and eported as well as the predictio
 
 
 ## Evaluation Metrics
-![image](https://github.com/selenakkaya/semantic_segmentation_on_LCD/assets/50169967/0c2c68e1-b898-4ddb-a4b3-91666b85eaea)
-
-### mIoU
-![image](https://github.com/selenakkaya/semantic_segmentation_on_LCD/assets/50169967/4424782d-2ce1-434f-9a0b-8a78443fa2f0)
-
+mIoU
+### mIo
 
 ## Model Selection 
 
 ### Unet 
-https://arxiv.org/pdf/1505.04597.pdf
-![image](https://github.com/selenakkaya/semantic_segmentation_on_LCD/assets/50169967/c058e154-1a34-4c20-b49a-8d5be03dc775)
-
 
 ### Unet ++
-https://arxiv.org/pdf/1807.10165.pdf
-![image](https://github.com/selenakkaya/semantic_segmentation_on_LCD/assets/50169967/6163db44-54de-4b7a-936c-2e997eb80d20)
-
