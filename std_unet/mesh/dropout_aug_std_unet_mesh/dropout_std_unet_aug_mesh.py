@@ -1,5 +1,5 @@
 EPOCHS = 250
-PATIENCE = 70
+PATIENCE = 50
 BATCH_SIZE = 16
 DIM = 512
 MODEL_NAME = "dropout_standard_unet_aug_mesh_64.h5"
@@ -16,7 +16,7 @@ import os
 from evaluation import mean_iou_test, dice_coeff, pixel_accuracy, pixel_accuracy_one_class
 
 tf.random.set_seed(1)
-src_arr = "/home/sakkaya/binary-segmentation/saved_arrays/" + CATEGORY # HPC
+src_arr = "/.../" + CATEGORY # HPC
 #src_arr = "../saved_arrays/" + CATEGORY # local pc
 
 
@@ -46,7 +46,7 @@ print(train_masks.shape)
 
 #checkpoint_path = "../checkpoints/standard_softmax" #where to save the model checkpoints
 
-checkpoint_path = "/home/sakkaya/std_unet/mesh/checkpoints_dropout_std_aug_"+CATEGORY #where to save the model checkpoints
+checkpoint_path = "/.../"+CATEGORY #where to save the model checkpoints
 
 if not os.path.exists(checkpoint_path):
     os.mkdir(checkpoint_path)
@@ -54,11 +54,8 @@ if not os.path.exists(checkpoint_path):
 
 #during training
 def mean_iou(y_true, y_pred):
-    yt0 = y_true[:,:,:,0]
-    yp0 = K.cast(y_pred[:,:,:,0] > 0.5, 'float32')
-    inter = tf.math.count_nonzero(tf.logical_and(tf.equal(yt0, 1), tf.equal(yp0, 1)))
-    union = tf.math.count_nonzero(tf.add(yt0, yp0))
-    iou = tf.where(tf.equal(union, 0), 1., tf.cast(inter/union, 'float32'))
+    """...
+    ..."""
     return iou
 
 def unet(sz = (DIM, DIM, 3)):
@@ -156,7 +153,7 @@ def unet(sz = (DIM, DIM, 3)):
   plt.ylabel('Loss')
   plt.legend()
   plt.show()
-  plt.savefig('/home/sakkaya/std_unet/mesh/loss_dropout_std_unet_aug_mesh.png')
+  plt.savefig('/.../loss_dropout_std_unet_aug_mesh.png')
 
   return model
 
@@ -192,7 +189,7 @@ model.summary()
 
 Qualitative measure: plot test image, prediction mask and target mask
 """
-sample_dir = "/home/sakkaya/std_unet/mesh/samples_dropout_aug_" + CATEGORY #where to save the predictions
+sample_dir = "/.../" + CATEGORY #where to save the predictions
 #sample_dir = "samples_unet_mesh"
 if not os.path.exists(sample_dir):
     os.mkdir(sample_dir)
